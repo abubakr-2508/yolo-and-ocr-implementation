@@ -114,7 +114,7 @@ elif app_mode == "Use Camera":
     
     # Camera controls
     run = st.checkbox('Start Camera')
-    FRAME_WINDOW = st.image([])
+    FRAME_WINDOW = st.empty()
     camera_text = st.empty()
     
     camera = None
@@ -124,6 +124,7 @@ elif app_mode == "Use Camera":
         camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
         camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         
+    frame_count = 0
     while run:
         ret, frame = camera.read()
         if not ret:
@@ -139,9 +140,10 @@ elif app_mode == "Use Camera":
         # Display frame
         FRAME_WINDOW.image(annotated_frame_rgb, channels="RGB", use_column_width=True)
         
-        # Display detected text
+        # Display detected text with a unique key
+        frame_count += 1
         if detected_text.strip():
-            camera_text.text_area("Detected Text", value=detected_text, height=100)
+            camera_text.text_area("Detected Text", value=detected_text, height=100, key=f"detection_text_{frame_count}")
         else:
             camera_text.info("No text detected in current frame.")
             
