@@ -15,9 +15,5 @@
       "src": "/(.*)",
       "dest": "app.py"
     }
-  ],
-  "files": [
-    "!yolov8s.pt",
-    "!yolov8x.pt"
   ]
 }

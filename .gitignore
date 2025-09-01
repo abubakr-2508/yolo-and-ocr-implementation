@@ -142,3 +142,6 @@ Thumbs.db
 *.h5
 *.hdf5
 .vercel
+
+# Additional large files to exclude
+yolov8*.pt
