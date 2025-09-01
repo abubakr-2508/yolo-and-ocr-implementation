@@ -23,7 +23,15 @@ This project combines real-time object detection using YOLOv8 and text recogniti
 pip install ultralytics opencv-python easyocr numpy
 ```
 
+For the web version:
+
+```bash
+pip install -r requirements.txt
+```
+
 ## Usage
+
+### Desktop Application
 
 Run the detection script:
 
@@ -33,13 +41,21 @@ python detect.py
 
 Press 'q' to quit the application.
 
+### Web Application
+
+Run the Streamlit web app:
+
+```bash
+streamlit run app.py
+```
+
 ## Model Files
 
 - `yolov8n.pt` - Nano model (fastest, least accurate)
 - `yolov8s.pt` - Small model (balanced speed and accuracy)
 - `yolov8x.pt` - Extra large model (slowest, most accurate)
 
-To use a different model, modify the model loading line in `detect.py`:
+To use a different model, modify the model loading line in `detect.py` or `app.py`:
 
 ```python
 model = YOLO("yolov8s.pt")  # or yolov8x.pt

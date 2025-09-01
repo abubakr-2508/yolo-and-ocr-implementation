@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOLO Object Detection with OCR</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .note {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .feature {
+            margin: 15px 0;
+            padding: 10px;
+            border-left: 4px solid #007acc;
+            background-color: #f8f9fa;
+        }
+        code {
+            background-color: #f1f1f1;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #007acc;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .btn:hover {
+            background-color: #005a9e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 YOLO Object Detection with OCR</h1>
+        
+        <div class="note">
+            <strong>Note:</strong> This is a Python desktop application that runs locally with a webcam. 
+            It cannot run directly in the browser due to browser security restrictions on camera access 
+            and the need for Python backend processing.
+        </div>
+        
+        <div class="feature">
+            <h2>Features</h2>
+            <ul>
+                <li>Real-time object detection with YOLOv8</li>
+                <li>Text recognition with EasyOCR</li>
+                <li>Combined display of detection results and recognized text</li>
+                <li>High-resolution camera feed (1280x720)</li>
+            </ul>
+        </div>
+        
+        <div class="feature">
+            <h2>How to Run Locally</h2>
+            <p>1. Clone or download this repository:</p>
+            <code>git clone https://github.com/abubakr-2508/yolo-and-ocr-implementation.git</code>
+            
+            <p>2. Install the required dependencies:</p>
+            <code>pip install ultralytics opencv-python easyocr numpy</code>
+            
+            <p>3. Run the application:</p>
+            <code>python detect.py</code>
+            
+            <p>Press 'q' to quit the application.</p>
+        </div>
+        
+        <div class="feature">
+            <h2>Web Version (Streamlit)</h2>
+            <p>We've also created a web version using Streamlit that works with image uploads:</p>
+            <code>pip install streamlit</code>
+            <code>streamlit run app.py</code>
+        </div>
+        
+        <div class="feature">
+            <h2>Repository Contents</h2>
+            <ul>
+                <li><code>detect.py</code> - Main desktop application with webcam</li>
+                <li><code>app.py</code> - Streamlit web application version</li>
+                <li><code>yolov8n.pt</code> - Pre-trained YOLOv8 nano model</li>
+                <li><code>requirements.txt</code> - Python dependencies</li>
+                <li><code>README.md</code> - Project documentation</li>
+            </ul>
+        </div>
+        
+        <p><a href="https://github.com/abubakr-2508/yolo-and-ocr-implementation" class="btn">View on GitHub</a></p>
+    </div>
+</body>
+</html>
