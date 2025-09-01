@@ -1,0 +1,4 @@
+# Vercel ignore file
+# Exclude large model files
+yolov8*.pt
+*.pt
