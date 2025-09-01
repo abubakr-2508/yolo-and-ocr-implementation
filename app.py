@@ -7,6 +7,8 @@ from PIL import Image
 import tempfile
 import os
 import time
+import urllib.request
+from pathlib import Path
 
 # Set page config
 st.set_page_config(
@@ -22,10 +24,24 @@ This application combines real-time object detection using YOLOv8 and text recog
 You can either upload an image or use your camera for real-time detection!
 """)
 
+# Function to download model if not present
+@st.cache_resource
+def download_model():
+    model_path = "yolov8n.pt"
+    if not Path(model_path).exists():
+        with st.spinner("Downloading YOLOv8 nano model... This may take a minute."):
+            urllib.request.urlretrieve(
+                "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt",
+                model_path
+            )
+    return model_path
+
 # Load models
 @st.cache_resource
 def load_models():
-    model = YOLO("yolov8n.pt")
+    # Download model if needed
+    model_path = download_model()
+    model = YOLO(model_path)
     reader = easyocr.Reader(['en'])
     return model, reader
 
@@ -184,8 +200,8 @@ st.sidebar.markdown("""
 
 **Use Camera Mode:**
 1. Select "Use Camera" from the dropdown
-2. Click "Start Camera" checkbox
+2. Click "Start/Stop Camera" button
 3. Allow browser camera access when prompted
 4. View real-time object detection
-5. Uncheck "Start Camera" to stop
+5. Click "Start/Stop Camera" again to stop
 """)

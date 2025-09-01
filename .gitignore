@@ -141,3 +141,4 @@ Thumbs.db
 *.onnx
 *.h5
 *.hdf5
+.vercel
