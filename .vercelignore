@@ -24,3 +24,10 @@ __pycache__/
 .git
 .vercel
 *.log
+
+# Ultralytics cache and models
+.ultralytics/
+/vercel/.cache/
+.vercel_build_output/
+.vercel/output/
+.cache/

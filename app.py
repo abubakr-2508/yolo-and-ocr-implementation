@@ -30,20 +30,28 @@ def download_model():
     model_path = "yolov8n.pt"
     if not Path(model_path).exists():
         with st.spinner("Downloading YOLOv8 nano model... This may take a minute."):
-            urllib.request.urlretrieve(
-                "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt",
-                model_path
-            )
+            try:
+                urllib.request.urlretrieve(
+                    "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt",
+                    model_path
+                )
+            except Exception as e:
+                st.error(f"Failed to download model: {e}")
+                st.stop()
     return model_path
 
-# Load models
+# Load models with error handling
 @st.cache_resource
 def load_models():
-    # Download model if needed
-    model_path = download_model()
-    model = YOLO(model_path)
-    reader = easyocr.Reader(['en'])
-    return model, reader
+    try:
+        # Download model if needed
+        model_path = download_model()
+        model = YOLO(model_path)
+        reader = easyocr.Reader(['en'])
+        return model, reader
+    except Exception as e:
+        st.error(f"Failed to load models: {e}")
+        st.stop()
 
 # Function to process image
 def process_image(image, model, reader):
