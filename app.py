@@ -106,52 +106,71 @@ if app_mode == "Upload Image":
                  caption="Example of YOLO Object Detection", use_column_width=True)
 
 elif app_mode == "Use Camera":
-    st.info("Click 'Start Camera' to begin real-time object detection. Press 'q' or close the window to stop.")
+    st.info("Click 'Start Camera' to begin real-time object detection.")
     
     # Load models
     with st.spinner("Loading models... This may take a moment."):
         model, reader = load_models()
     
-    # Camera controls
-    run = st.checkbox('Start Camera')
-    FRAME_WINDOW = st.empty()
-    camera_text = st.empty()
+    # Camera controls with proper session state handling
+    if 'run_camera' not in st.session_state:
+        st.session_state.run_camera = False
+        
+    # Use a button instead of checkbox for better control
+    if st.button('Start/Stop Camera'):
+        st.session_state.run_camera = not st.session_state.run_camera
     
-    camera = None
-    if run:
-        camera = cv2.VideoCapture(0)
-        # Set camera properties for better quality
-        camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-        
-    frame_count = 0
-    while run:
-        ret, frame = camera.read()
-        if not ret:
-            st.warning("Failed to access camera. Please check your camera settings.")
-            break
-            
-        # Process frame
-        annotated_frame, detected_text = process_frame(frame, model, reader)
-        
-        # Convert BGR to RGB for display
-        annotated_frame_rgb = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
-        
-        # Display frame
-        FRAME_WINDOW.image(annotated_frame_rgb, channels="RGB", use_column_width=True)
-        
-        # Display detected text with a unique key
-        frame_count += 1
-        if detected_text.strip():
-            camera_text.text_area("Detected Text", value=detected_text, height=100, key=f"detection_text_{frame_count}")
-        else:
-            camera_text.info("No text detected in current frame.")
-            
-        # Add a small delay to control frame rate
-        time.sleep(0.03)
-        
-    if camera:
-        camera.release()
+    if st.session_state.run_camera:
+        # Try to access the camera
+        try:
+            camera = cv2.VideoCapture(0)
+            if not camera.isOpened():
+                st.error("Failed to access camera. Please check your camera settings and ensure no other applications are using it.")
+            else:
+                # Set camera properties for better quality
+                camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+                camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+                
+                # Create placeholders for the video feed and text
+                FRAME_WINDOW = st.empty()
+                camera_text = st.empty()
+                
+                frame_count = 0
+                while st.session_state.run_camera:
+                    ret, frame = camera.read()
+                    if not ret:
+                        st.warning("⚠️ Camera disconnected. Please check your camera connection and click 'Start/Stop Camera' to restart.")
+                        break
+                    
+                    # Process frame
+                    annotated_frame, detected_text = process_frame(frame, model, reader)
+                    
+                    # Convert BGR to RGB for display
+                    annotated_frame_rgb = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
+                    
+                    # Display frame
+                    FRAME_WINDOW.image(annotated_frame_rgb, channels="RGB", use_column_width=True)
+                    
+                    # Display detected text with a unique key
+                    frame_count += 1
+                    if detected_text.strip():
+                        camera_text.text_area("Detected Text", value=detected_text, height=100, key=f"detection_text_{frame_count}")
+                    else:
+                        camera_text.info("No text detected in current frame.")
+                    
+                    # Add a small delay to control frame rate
+                    time.sleep(0.03)
+                
+                # Release the camera when done
+                camera.release()
+                st.info("Camera stopped. Click 'Start/Stop Camera' to begin again.")
+                
+        except Exception as e:
+            st.error(f"An error occurred with the camera: {str(e)}")
+            if 'camera' in locals():
+                camera.release()
+    else:
+        st.info("Camera is not running. Click 'Start/Stop Camera' to begin.")
 
 # Instructions
 st.sidebar.markdown("---")
