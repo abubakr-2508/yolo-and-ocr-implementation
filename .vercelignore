@@ -2,3 +2,25 @@
 # Exclude large model files
 yolov8*.pt
 *.pt
+*.pth
+*.onnx
+*.h5
+*.hdf5
+
+# Exclude other large files
+*.zip
+*.tar.gz
+*.tar
+*.gz
+
+# Cache and temporary files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.pytest_cache/
+.coverage
+.git
+.vercel
+*.log
