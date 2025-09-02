@@ -10,6 +10,14 @@ import time
 import urllib.request
 from pathlib import Path
 
+# TextBlob for text cleaning and correction
+try:
+    from textblob import TextBlob
+    TEXT_CLEANING_AVAILABLE = True
+except ImportError:
+    TEXT_CLEANING_AVAILABLE = False
+    st.warning("Text cleaning not available. Install textblob for text correction.")
+
 # Set page config
 st.set_page_config(
     page_title="YOLO Object Detection with OCR",
@@ -40,6 +48,31 @@ def download_model():
                 st.stop()
     return model_path
 
+# Function to clean and correct OCR text using TextBlob
+def clean_ocr_text(text):
+    """Clean and correct OCR text using TextBlob"""
+    if not TEXT_CLEANING_AVAILABLE or not text.strip():
+        return text
+    
+    try:
+        # Split text into lines and process each
+        lines = text.split('\n')
+        cleaned_lines = []
+        
+        for line in lines:
+            if line.strip():
+                # Create a TextBlob object and correct spelling
+                blob = TextBlob(line)
+                corrected_line = str(blob.correct())
+                cleaned_lines.append(corrected_line)
+            else:
+                cleaned_lines.append(line)
+        
+        return '\n'.join(cleaned_lines)
+    except Exception as e:
+        st.warning(f"Text cleaning failed: {e}")
+        return text
+
 # Load models with error handling
 @st.cache_resource
 def load_models():
@@ -68,10 +101,13 @@ def process_image(image, model, reader):
     for detection in ocr_results:
         text += detection[1] + "\n"
     
+    # Clean and correct the detected text
+    cleaned_text = clean_ocr_text(text)
+    
     # Convert back to PIL format for display
     annotated_pil = Image.fromarray(cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB))
     
-    return annotated_pil, text
+    return annotated_pil, text, cleaned_text
 
 # Function to process video frame
 def process_frame(frame, model, reader):
@@ -85,7 +121,10 @@ def process_frame(frame, model, reader):
     for detection in ocr_results:
         text += detection[1] + "\n"
     
-    return annotated_frame, text
+    # Clean and correct the detected text
+    cleaned_text = clean_ocr_text(text)
+    
+    return annotated_frame, text, cleaned_text
 
 # Sidebar
 st.sidebar.header("Settings")
@@ -104,7 +143,7 @@ if app_mode == "Upload Image":
         # Process image
         with st.spinner("Processing image..."):
             image = Image.open(uploaded_file)
-            annotated_image, detected_text = process_image(image, model, reader)
+            annotated_image, detected_text, cleaned_text = process_image(image, model, reader)
         
         # Display results
         col1, col2 = st.columns(2)
@@ -120,9 +159,14 @@ if app_mode == "Upload Image":
         # Display detected text
         st.subheader("Detected Text")
         if detected_text.strip():
-            st.text_area("Recognized Text", value=detected_text, height=200, key="detected_text")
+            st.text_area("Original OCR Text", value=detected_text, height=200, key="original_text")
         else:
             st.info("No text detected in the image.")
+            
+        # Display cleaned text if available
+        if TEXT_CLEANING_AVAILABLE and cleaned_text.strip():
+            st.subheader("Cleaned & Corrected Text")
+            st.text_area("Corrected Text", value=cleaned_text, height=200, key="cleaned_text")
             
     else:
         st.info("Please upload an image using the sidebar to get started.")
@@ -158,6 +202,7 @@ elif app_mode == "Use Camera":
                 # Create placeholders for the video feed and text
                 FRAME_WINDOW = st.empty()
                 camera_text = st.empty()
+                cleaned_camera_text = st.empty()
                 
                 frame_count = 0
                 while st.session_state.run_camera:
@@ -167,7 +212,7 @@ elif app_mode == "Use Camera":
                         break
                     
                     # Process frame
-                    annotated_frame, detected_text = process_frame(frame, model, reader)
+                    annotated_frame, detected_text, cleaned_text = process_frame(frame, model, reader)
                     
                     # Convert BGR to RGB for display
                     annotated_frame_rgb = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
@@ -178,9 +223,13 @@ elif app_mode == "Use Camera":
                     # Display detected text with a unique key
                     frame_count += 1
                     if detected_text.strip():
-                        camera_text.text_area("Detected Text", value=detected_text, height=100, key=f"detection_text_{frame_count}")
+                        camera_text.text_area("Original OCR Text", value=detected_text, height=100, key=f"detection_text_{frame_count}")
                     else:
                         camera_text.info("No text detected in current frame.")
+                    
+                    # Display cleaned text if available
+                    if TEXT_CLEANING_AVAILABLE and cleaned_text.strip():
+                        cleaned_camera_text.text_area("Corrected Text", value=cleaned_text, height=100, key=f"cleaned_text_{frame_count}")
                     
                     # Add a small delay to control frame rate
                     time.sleep(0.03)
