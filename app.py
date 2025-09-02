@@ -1,6 +1,5 @@
 import streamlit as st
 import numpy as np
-from ultralytics import YOLO
 from PIL import Image
 import tempfile
 import os
@@ -22,10 +21,12 @@ This application combines real-time object detection using YOLOv8 and text recog
 You can either upload an image for detection!
 """)
 
-# Try to import OpenCV and EasyOCR with error handling
+# Global variables for model status
+MODEL_LOAD_ERROR = None
 OPENCV_AVAILABLE = False
 EASYOCR_AVAILABLE = False
 
+# Try to import OpenCV and EasyOCR with error handling
 try:
     import cv2
     OPENCV_AVAILABLE = True
@@ -55,10 +56,14 @@ def download_model():
         st.info("Using default model loading (will download automatically if needed)")
         return "yolov8n.pt"  # Let YOLO handle the download
 
-# Load models with error handling
+# Load models with error handling - deferred import
 @st.cache_resource(show_spinner=False)
 def load_models():
+    global MODEL_LOAD_ERROR
     try:
+        # Import YOLO only when needed
+        from ultralytics import YOLO
+        
         # Download model if needed
         model_path = download_model()
         model = YOLO(model_path)
@@ -70,8 +75,9 @@ def load_models():
                 reader = easyocr.Reader(['en'])
         return model, reader
     except Exception as e:
+        MODEL_LOAD_ERROR = str(e)
         st.error(f"Failed to load models: {e}")
-        st.stop()
+        return None, None
 
 # Function to process image
 def process_image(image, model, reader):
@@ -131,6 +137,13 @@ if app_mode == "Upload Image":
             # Load models
             with st.spinner("Loading models... This may take a moment."):
                 model, reader = load_models()
+            
+            # Check if models loaded successfully
+            if model is None:
+                st.error("Models failed to load. Please check the logs for more details.")
+                if MODEL_LOAD_ERROR:
+                    st.info(f"Error details: {MODEL_LOAD_ERROR}")
+                st.stop()
             
             # Process image
             with st.spinner("Processing image..."):
