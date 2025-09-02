@@ -1,11 +1,5 @@
 import streamlit as st
-try:
-    import cv2
-except ImportError:
-    st.error("OpenCV is not available in this environment. Some features may not work.")
-    cv2 = None
 import numpy as np
-import easyocr
 from ultralytics import YOLO
 from PIL import Image
 import tempfile
@@ -27,6 +21,21 @@ st.markdown("""
 This application combines real-time object detection using YOLOv8 and text recognition using EasyOCR.
 You can either upload an image for detection!
 """)
+
+# Try to import OpenCV and EasyOCR with error handling
+try:
+    import cv2
+    OPENCV_AVAILABLE = True
+except ImportError:
+    OPENCV_AVAILABLE = False
+    st.warning("OpenCV is not available in this environment. Some features may not work.")
+
+try:
+    import easyocr
+    EASYOCR_AVAILABLE = True
+except ImportError:
+    EASYOCR_AVAILABLE = False
+    st.warning("EasyOCR is not available in this environment. OCR functionality will be disabled.")
 
 # Function to download model if not present
 @st.cache_resource
@@ -51,7 +60,11 @@ def load_models():
         # Download model if needed
         model_path = download_model()
         model = YOLO(model_path)
-        reader = easyocr.Reader(['en'])
+        
+        # Only load OCR reader if EasyOCR is available
+        reader = None
+        if EASYOCR_AVAILABLE:
+            reader = easyocr.Reader(['en'])
         return model, reader
     except Exception as e:
         st.error(f"Failed to load models: {e}")
@@ -60,20 +73,35 @@ def load_models():
 # Function to process image
 def process_image(image, model, reader):
     # Convert PIL image to OpenCV format
-    img_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+    if OPENCV_AVAILABLE:
+        img_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+    else:
+        # Fallback if OpenCV is not available
+        img_cv = np.array(image)
     
     # YOLO Object Detection
     results = model(img_cv)
     annotated_frame = results[0].plot()
     
-    # OCR Text Detection
-    ocr_results = reader.readtext(img_cv)
+    # OCR Text Detection (only if EasyOCR is available)
     text = ""
-    for detection in ocr_results:
-        text += detection[1] + "\n"
+    if reader and EASYOCR_AVAILABLE:
+        try:
+            ocr_results = reader.readtext(img_cv)
+            for detection in ocr_results:
+                text += detection[1] + "\n"
+        except Exception as e:
+            st.warning(f"OCR failed: {e}")
+            text = "OCR not available"
+    else:
+        text = "OCR functionality disabled"
     
     # Convert back to PIL format for display
-    annotated_pil = Image.fromarray(cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB))
+    if OPENCV_AVAILABLE:
+        annotated_pil = Image.fromarray(cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB))
+    else:
+        # Fallback if OpenCV is not available
+        annotated_pil = Image.fromarray(annotated_frame)
     
     return annotated_pil, text
 
